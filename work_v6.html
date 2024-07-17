@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panoramic Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./three/three.min.js"></script>
+    <script src="./panolens/panolens.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+
+        }
+
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            font-family: "Poppins", sans-serif;
+            position: relative;
+        }
+
+        .hero {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #panorama {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #slide {
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 400px;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: rgb(0, 0, 0);
+            transition: right 0.3s ease-in-out;
+            z-index: 100;
+            padding: 40px 20px 20px 30px ;
+        }
+
+        #slide.active {
+            right: 0;
+        }
+
+        #gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 9;
+        }
+
+        .close-icon {
+            position: absolute;
+            margin-top: 10px;
+            top: 10px;
+            right: 30px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .close-icon:before,
+        .close-icon:after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background-color: rgb(0, 0, 0);
+        }
+
+        .close-icon:before {
+            transform: rotate(45deg);
+        }
+
+        .close-icon:after {
+            transform: rotate(-45deg);
+        }
+
+        .content-section {
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        nav {
+            background-size: cover;
+            background-color: #165B31;
+            /* Dark blue background */
+            color: #ffffff;
+            /* White text */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            overflow: hidden;
+            border-bottom: 0.8rem solid #BB262C;
+            background: radial-gradient(circle at 0 100px, #001b0a, #165B31);
+
+
+        }
+
+        nav .left-section {
+            display: flex;
+            flex-direction: row;
+        }
+
+
+        nav .right-section a {
+            color: #ffffff;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 16px;
+        }
+
+        .header_logo {
+            top: 0px;
+            left: 15rem;
+            position: absolute;
+            z-index: 500;
+            width: 15%;
+        }
+
+        .header_logo .logo_nav {
+            padding: 50px 8px;
+            background-color: #ffffff;
+        }
+
+        .header_sec2 {
+            display: flex;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #165B31;
+            width: 100%;
+            height: 100px;
+            background: radial-gradient(circle at 0 200px, #001b0a, #165B31);
+        }
+
+        .menu a {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu a svg,
+        .booking a svg {
+            margin: 0px auto;
+        }
+
+        .menu a p,
+        .booking a p {
+            font-weight: 500;
+            font-size: 14px;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .booking {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #BB262C;
+            width: 100%;
+            height: 100px;
+            background: radial-gradient(circle at 0 200px, #2b0103, #BB262C);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="left-section">
+
+            <p>EN </p>
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                    <path d="M7 10L12 15L17 10" stroke="#BB262C" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                </g>
+            </svg>
+        </div>
+        <div class="right-section">
+
+            <a href="#">OUR SITES</a>
+            <a href="#">TEAM INSEP</a>
+            <a href="#">NETWORKS</a>
+            <a href="#">FUNDRAISING</a>
+            <!-- <a href="#"><img src="./icons/facebook.png" alt="Facebook" style="height: 20px;"></a>
+            <a href="#"><img src="./icons/twitter.png" alt="Twitter" style="height: 20px;"></a>
+            <a href="#"><img src="./icons/instagram.png" alt="Instagram" style="height: 20px;"></a>
+            <a href="#"><img src="./icons/youtube.png" alt="YouTube" style="height: 20px;"></a>
+            <a href="#"><img src="./icons/linkedin.png" alt="LinkedIn" style="height: 20px;"></a> -->
+        </div>
+    </nav>
+    <div class="header_logo">
+
+        <div class="logo_nav">
+            <img style="width: 100%;" src="./irfc_aboayyad-ff139fa05a_639x355.png" alt="">
+        </div>
+        <div class="header_sec2">
+            <div class="menu">
+                <a href="">
+                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                            <path d="M4 6H20M4 12H20M4 18H20" stroke="#ffffff" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"></path>
+                        </g>
+                    </svg>
+                    <p>MENU</p>
+                </a>
+
+            </div>
+            <div class="booking">
+                <a href="">
+                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                            <path
+                                d="M3 9H21M7 3V5M17 3V5M6 12H8M11 12H13M16 12H18M6 15H8M11 15H13M16 15H18M6 18H8M11 18H13M16 18H18M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z"
+                                stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+                        </g>
+                    </svg>
+                    <p>booking</p>
+                </a>
+
+            </div>
+        </div>
+
+
+
+    </div>
+    <div class="hero">
+        <div id="panorama"></div>
+        <canvas id="gradient-overlay"></canvas>
+        <div id="slide">
+            <div class="close-icon" id="close-icon"></div>
+            <h2>Slide Content</h2>
+            <p>This is the content inside the slide.</p>
+        </div>
+    </div>
+    <div class="content-section" id="section2">
+        <h2>Content Section</h2>
+        <p>This is another section below the panoramic viewer. Add any content you like here.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Panolens viewer
+            const panoramaElement = document.getElementById('panorama');
+            const viewer = new PANOLENS.Viewer({
+                container: panoramaElement,
+                autoRotate: true,
+                autoRotateSpeed: 0.5,
+                controlBar: false, // Disable control bar
+                enableReticle: false, // Disable reticle
+                horizontalView: true,// Restrict to horizontal view
+
+            });
+            viewer.OrbitControls.noZoom = true;
+            // Add your panoramic photo
+            const panorama = new PANOLENS.ImagePanorama('./slider_360_with_lines12.jpg');
+            viewer.add(panorama);
+
+            // Set initial camera position to show the middle of the image
+            panorama.addEventListener('enter', function () {
+                viewer.OrbitControls.target.set(0, 0, 0); // Adjust target as needed
+                viewer.OrbitControls.update();
+            });
+
+            // Add a clickable sphere at specific coordinates
+            const sphereGeometry = new THREE.BoxGeometry(80, 150, 150);
+            const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xB7274B }); // #B7274B
+            const clickableSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+
+            // Specify the position in 3D space (adjust these values)
+            clickableSphere.position.set(5000, 600, 0);
+            panorama.add(clickableSphere);
+
+            // Raycaster for detecting clicks on the sphere
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            function onMouseDown(event) {
+                const rect = viewer.getContainer().getBoundingClientRect();
+                mouse.x = (event.clientX / rect.width) * 2 - 1;
+                mouse.y = - (event.clientY / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, viewer.camera);
+                const intersects = raycaster.intersectObject(clickableSphere);
+
+                if (intersects.length > 0) {
+                    showSlide();
+                }
+            }
+
+            function onMouseUp() {
+                viewer.autoRotate = true;
+            }
+
+            function onMouseLeave() {
+                viewer.autoRotate = true;
+            }
+
+            viewer.getContainer().addEventListener('mousedown', function (event) {
+                viewer.autoRotate = false;
+                onMouseDown(event);
+            });
+
+            viewer.getContainer().addEventListener('mouseup', onMouseUp);
+            viewer.getContainer().addEventListener('mouseleave', onMouseLeave);
+
+            // Show the slide
+            function showSlide() {
+                const slide = document.getElementById('slide');
+                slide.classList.add('active');
+                console.log(slide)
+            }
+
+            // Hide the slide
+            function hideSlide() {
+                const slide = document.getElementById('slide');
+                slide.classList.remove('active');
+            }
+
+            // Add click event listener to the close icon
+            const closeIcon = document.getElementById('close-icon');
+            closeIcon.addEventListener('click', hideSlide);
+
+            // Smooth scroll to section 2
+            const section2 = document.getElementById('section2');
+            section2.addEventListener('click', function () {
+                section2.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panoramic Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./three/three.min.js"></script>
+    <script src="./panolens/panolens.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.cdnfonts.com/css/futura-std-4" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "FuturaStd", "Poppins", "Roboto", "Franklin Gothic Medium", Tahoma, sans-serif;
+
+        }
+
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .hero {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #panorama {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #slide {
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 400px;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            color: rgb(0, 0, 0);
+            transition: right 0.3s ease-in-out;
+            z-index: 100;
+            padding: 4rem;
+        }
+
+        .panorama-content__teaser {
+            font-size: 1rem;
+            font-style: italic;
+            margin: 1.5rem 0;
+            font-weight: 300;
+
+        }
+
+        .rte a:not([data-fancybox]) {
+            color: #BB262C;
+            text-decoration: underline;
+            display: flex;
+            align-items: center
+        }
+
+        li,
+        .panorama-content__body.rte p {
+            color: #000;
+            font-size: 1.2rem;
+        }
+
+        #slide .details {
+            font-size: 1rem;
+            line-height: 1.8rem;
+
+        }
+        #slide .panorama-content__teaser{
+            color: #165B31;
+        }
+        .panorama-content__body p {
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+
+        .panorama-content__body {
+            border-bottom: 2px solid #ee3048;
+            padding: 0 0 3rem;
+        }
+
+        .panorama-content__title span {
+            display: block;
+            font-weight: 700;
+            color: #165B31;
+        }
+
+        .panorama-content__title {
+            border-bottom: 2px solid #BB262C;
+            padding: 0 0 2rem;
+            text-transform: uppercase;
+            font-size: 2rem;
+            margin: 0 0 2rem;
+        }
+
+        .rte .show-hide__content ul,
+        .rte ul {
+            list-style: none;
+            margin: 0rem 0 1.5rem 2.5rem;
+            
+        }
+
+        #slide.active {
+            right: 0;
+        }
+
+        #gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 9;
+        }
+
+        .close-icon {
+            position: absolute;
+            margin-top: 10px;
+            top: 10px;
+            right: 30px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .close-icon:before,
+        .close-icon:after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background-color: rgb(0, 0, 0);
+        }
+
+        .close-icon:before {
+            transform: rotate(45deg);
+        }
+
+        .close-icon:after {
+            transform: rotate(-45deg);
+        }
+
+        .content-section {
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        nav {
+            /*background: rgba(22, 91, 49, 0.9) url('./Sans_titre_-_1-03-removebg-preview.png') no-repeat center center;*/
+            background-size: cover;
+            background-color: #165B31;
+            /* Dark blue background */
+            color: #ffffff;
+            /* White text */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 20px;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            overflow: hidden;
+            /*border-bottom: 0.8rem solid #BB262C;*/
+            /*background: radial-gradient(circle at 0 100px, #001b0a, #165B31);*/
+            /*border-image-source: linear-gradient(to left, #00C853, #B2FF59);*/
+
+            border-width: 7px;
+            border-style: solid;
+            border-image: linear-gradient(to right, #690004 , #BB262C) 1;
+            border-left: 0;
+            border-right: 0;
+            border-top: 0;
+        }
+
+        nav .left-section {
+            display: flex;
+            flex-direction: row;
+        }
+
+
+        nav .right-section > a {
+            color: #ffffff;
+            text-decoration: none;
+            padding-right: 20px;
+            padding-left: 20px;
+            font-size: 16px;
+            border-right: 2px solid #BB262C;
+        }
+
+        nav .right-section span a{
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+
+        nav .right-section span{
+            border-right: 2px solid #BB262C;
+        }
+
+
+        .header_logo {
+            top: 0px;
+            left: 15rem;
+            position: absolute;
+            z-index: 500;
+            width: 15%;
+        }
+
+        .header_logo .logo_nav {
+            padding: 50px 8px;
+            background-color: #ffffff;
+        }
+
+        .header_sec2 {
+            display: flex;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #165B31;
+            width: 100%;
+            height: 100px;
+            background: radial-gradient(circle at 0 200px, #001b0a, #165B31);
+        }
+
+        .menu a {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu a svg,
+        .booking a svg {
+            margin: 0px auto;
+        }
+
+        .menu a p,
+        .booking a p {
+            font-weight: 500;
+            font-size: 14px;
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .booking {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #BB262C;
+            width: 100%;
+            height: 100px;
+            background: radial-gradient(circle at 0 200px, #2b0103, #BB262C);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div>
+        <img style="height: 30px;width:100%;object-fit: cover;" src="./Sans titre - 1-02.png" alt="">
+    </div> -->
+    <nav>
+        <div class="left-section">
+
+            <p>EN </p>
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                    <path d="M7 10L12 15L17 10" stroke="#BB262C" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round"></path>
+                </g>
+            </svg>
+        </div>
+        <div class="right-section">
+
+            <a href="#" >OUR SITES</a>
+            <a href="#">TEAM INSEP</a>
+            <a href="#">NETWORKS</a>
+            <a href="#">FUNDRAISING</a>
+            <span >
+                <a href=""><i class="fa fa-facebook"></i></a>
+                <a href=""><i class="fa fa-twitter"></i></a>
+                <a href=""><i class="fa fa-instagram"></i></a>
+                <a href=""><i class="fa fa-youtube"></i></a>
+                <a href=""><i class="fa fa-linkedin"></i></a>
+
+            </span>
+            <a style="border: none;" href=""><i class="fa fa-search"></i></a>
+
+            <!-- <a href="#"><img src="./icons/facebook.png" alt="Facebook" style="height: 20px;"></a>
+            <a href="#"><img src="./icons/twitter.png" alt="Twitter" style="height: 20px;"></a>
+            <a href="#"><img src="./icons/instagram.png" alt="Instagram" style="height: 20px;"></a>
+            <a href="#"><img src="./icons/youtube.png" alt="YouTube" style="height: 20px;"></a>
+            <a href="#"><img src="./icons/linkedin.png" alt="LinkedIn" style="height: 20px;"></a> -->
+        </div>
+    </nav>
+    <div class="header_logo">
+
+        <div class="logo_nav">
+            <img style="width: 100%;" src="./irfc_aboayyad-ff139fa05a_639x355.png" alt="">
+        </div>
+        <div class="header_sec2">
+            <div class="menu">
+                <a href="">
+                    <svg class="w-8 h-8"  viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                            <path d="M4 6H20M4 12H20M4 18H20" stroke="#ffffff" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"></path>
+                        </g>
+                    </svg>
+                    <p>MENU</p>
+                </a>
+
+            </div>
+            <div class="booking">
+                <a href="">
+                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                        <g id="SVGRepo_iconCarrier">
+                            <path
+                                d="M3 9H21M7 3V5M17 3V5M6 12H8M11 12H13M16 12H18M6 15H8M11 15H13M16 15H18M6 18H8M11 18H13M16 18H18M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z"
+                                stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+                        </g>
+                    </svg>
+                    <p>booking</p>
+                </a>
+
+            </div>
+        </div>
+
+
+
+    </div>
+    <div class="hero">
+        <div id="panorama"></div>
+        <canvas id="gradient-overlay"></canvas>
+        <div id="slide" >
+            <div class="close-icon" id="close-icon"></div>
+            <h2 class="panorama-content__title">
+                <span>Shooting</span>
+                range
+            </h2>
+            <p class="panorama-content__teaser">The shooting range has been fully renovated and was delivered in 2019
+            </p>
+
+            <div class="panorama-content__body rte">
+                <p class="details">The shooting range has two 50m ranges. The structure is fitted with external timber
+                    cladding, like the Oriola complex, to ensure the site's overall harmonisation.</p>
+
+                <p><strong><a data-entity-substitution="canonical" data-entity-type="node"
+                            data-entity-uuid="69f745ba-e99f-44e6-bc45-16adc1938325" href="" title="Photos/Videos"
+                            tabindex="0">PHOTOS &amp; VIDEOS GALLERY</a></strong></p>
+
+                <p><strong>Sport</strong></p>
+
+                <ul>
+                    <li><a data-entity-substitution="canonical" data-entity-type="node"
+                            data-entity-uuid="b5ea4f31-3c47-4998-a49e-6fbca7bc194d" href="" title="Shooting"
+                            tabindex="0">
+                            <svg class="w-4 h-4" viewBox="-4.5 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                                xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+                                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                <g id="SVGRepo_iconCarrier">
+                                    <title>arrow_right [#BB262C]</title>
+                                    <desc>Created with Sketch.</desc>
+                                    <defs> </defs>
+                                    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                        <g id="Dribbble-Light-Preview" transform="translate(-305.000000, -6679.000000)"
+                                            fill="#BB262C">
+                                            <g id="icons" transform="translate(56.000000, 160.000000)">
+                                                <path
+                                                    d="M249.365851,6538.70769 L249.365851,6538.70769 C249.770764,6539.09744 250.426289,6539.09744 250.830166,6538.70769 L259.393407,6530.44413 C260.202198,6529.66364 260.202198,6528.39747 259.393407,6527.61699 L250.768031,6519.29246 C250.367261,6518.90671 249.720021,6518.90172 249.314072,6519.28247 L249.314072,6519.28247 C248.899839,6519.67121 248.894661,6520.31179 249.302681,6520.70653 L257.196934,6528.32352 C257.601847,6528.71426 257.601847,6529.34685 257.196934,6529.73759 L249.365851,6537.29462 C248.960938,6537.68437 248.960938,6538.31795 249.365851,6538.70769"
+                                                    id="arrow_right-[#BB262C]"> </path>
+                                            </g>
+                                        </g>
+                                    </g>
+                                </g>
+                            </svg>
+
+                            Shooting (pistol, rifle)</a>&nbsp;</li>
+                </ul>
+
+            </div>
+
+        </div>
+    </div>
+    <div class="content-section" id="section2">
+        <h2>Content Section</h2>
+        <p>This is another section below the panoramic viewer. Add any content you like here.</p>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+
+</html>

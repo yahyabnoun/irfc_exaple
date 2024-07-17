@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panoramic Viewer</title>
+    <script src="./three/three.min.js"></script>
+    <script src="./panolens/panolens.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        #panorama {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        #slide {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            transition: right 0.3s ease-in-out;
+            z-index: 10;
+            padding: 20px;
+        }
+        #slide.active {
+            right: 0;
+        }
+        #gradient-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 9;
+        }
+        .close-icon {
+            position: absolute;
+            margin-top: 10px;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .close-icon:before, .close-icon:after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background-color: white;
+        }
+        .close-icon:before {
+            transform: rotate(45deg);
+        }
+        .close-icon:after {
+            transform: rotate(-45deg);
+        }
+    </style>
+</head>
+<body>
+    <div id="panorama"></div>
+    <canvas id="gradient-overlay"></canvas>
+    <div id="slide">
+        <div class="close-icon" id="close-icon"></div>
+        <h2>Slide Content</h2>
+        <p>This is the content inside the slide.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Panolens viewer
+            const panoramaElement = document.getElementById('panorama');
+            const viewer = new PANOLENS.Viewer({ 
+                container: panoramaElement, 
+                autoRotate: true, 
+                autoRotateSpeed: 0.5,
+                controlBar: false, // Disable control bar
+                enableReticle: false, // Disable reticle
+                horizontalView: true // Restrict to horizontal view
+            });
+
+            // Add your panoramic photo
+            const panorama = new PANOLENS.ImagePanorama('./slider_360_with_lines12.jpg');
+            viewer.add(panorama);
+
+            // Set initial camera position to show the middle of the image
+            panorama.addEventListener('enter', function() {
+                viewer.OrbitControls.target.set(0, 0, 0); // Adjust target as needed
+                viewer.OrbitControls.update();
+            });
+
+            // Add a clickable sphere at specific coordinates
+            const sphereGeometry = new THREE.SphereGeometry(100, 32, 32);
+            const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const clickableSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            
+            // Specify the position in 3D space (adjust these values)
+            clickableSphere.position.set(5000, 0, 0);
+            panorama.add(clickableSphere);
+
+            // Raycaster for detecting clicks on the sphere
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            function onMouseDown(event) {
+                const rect = viewer.getContainer().getBoundingClientRect();
+                mouse.x = (event.clientX / rect.width) * 2 - 1;
+                mouse.y = - (event.clientY / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, viewer.camera);
+                const intersects = raycaster.intersectObject(clickableSphere);
+
+                if (intersects.length > 0) {
+                    showSlide();
+                }
+            }
+
+            function onMouseUp() {
+                viewer.autoRotate = true;
+            }
+
+            function onMouseLeave() {
+                viewer.autoRotate = true;
+            }
+
+            viewer.getContainer().addEventListener('mousedown', function(event) {
+                viewer.autoRotate = false;
+                onMouseDown(event);
+            });
+
+            viewer.getContainer().addEventListener('mouseup', onMouseUp);
+            viewer.getContainer().addEventListener('mouseleave', onMouseLeave);
+
+            // Show the slide
+            function showSlide() {
+                const slide = document.getElementById('slide');
+                slide.classList.add('active');
+            }
+
+            // Hide the slide
+            function hideSlide() {
+                const slide = document.getElementById('slide');
+                slide.classList.remove('active');
+            }
+
+            // Add click event listener to the close icon
+            const closeIcon = document.getElementById('close-icon');
+            closeIcon.addEventListener('click', hideSlide);
+        });
+    </script>
+</body>
+</html>
