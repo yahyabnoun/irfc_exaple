@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
     viewer.OrbitControls.noZoom = true;
 
     // Add your panoramic photo
-    const panorama = new PANOLENS.ImagePanorama('./slider_360_with_lines12.jpg');
+    const panorama = new PANOLENS.ImagePanorama('./images/slider_360_with_lines12.jpg');
     viewer.add(panorama);
 
     // Set initial camera position to show the middle of the image
